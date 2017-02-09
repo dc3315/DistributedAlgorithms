@@ -16,7 +16,7 @@ task1(MaxMessages, Time, Processes) ->
   T = spawn(timer, start, []),
   T ! {bind, self(), Time},
   % Start broadcasting and receiving.
-  % Initialise From map.
+  % Initialise From and To maps.
   From = maps:from_list([{Process, 0} || Process <- Processes]), 
   To = maps:from_list([{Process, 0} || Process <- Processes]),
   task1Helper(MaxMessages, Processes, From, To, 0).
@@ -25,17 +25,21 @@ task1Helper(MaxMessages, Processes, From, To, CurrentCount) ->
   % if MaxMessage is > CurrentCount:
   % block here.
   % otherwise
-  %io:format("OK TASK1HELPER~n"),
   receive
-    {message, Sender} -> ok;
-      %NewFrom = incrementMappedValue(From, Sender),
-      %task1Helper(MaxMessages, Processes, NewFrom, To, CurrentCount);
+    {message, Sender} -> 
+      NewFrom = incrementMapValuesFromKeyList(From, [Sender]),
+      task1Helper(MaxMessages, Processes, NewFrom, To, CurrentCount);
     {timeout} -> halt()
   after
-    0 -> halt() %broadcast(Processes, MaxMessages, CurrentCount)
-      %NewTo = [ Process ! {message, self()} || Process <- Processes ]
-
+    0 ->
+      [Process ! {message, self()} || Process <- Processes], %broadcast.
+      NewTo = incrementMapValuesFromKeyList(To, Processes),
+      task1Helper(MaxMessages, Processes, From, NewTo, CurrentCount + 1)
   end.
+
+% All keys are guaranteed to be in the map, therefore maps:get will not fail.
+incrementMapValuesFromKeyList(Map, Keys) ->
+  maps:from_list([{K, maps:get(K, Map) + 1} || K <- Keys]).
 
 broadcast(P, M, C) -> halt().
 log() -> ok.
