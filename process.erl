@@ -14,21 +14,23 @@ next(Processes) ->
 task1(MaxMessages, Time, Processes) -> 
   % Set up a timer to interrupt the process after Time milliseconds.
   T = spawn(timer, start, []),
-  T ! {bind, self(), TimeOut},
+  T ! {bind, self(), Time},
   % Start broadcasting and receiving.
+  io:format("OK!~n"),
   task1Helper(MaxMessages, Processes, #{}, #{}, 0).
 
 task1Helper(MaxMessages, Processes, From, To, CurrentCount) ->
   % if MaxMessage is > CurrentCount:
   % block here.
   % otherwise
+  io:format("OK TASK1HELPER~n"),
   receive
     {message, Sender} -> updateMap();
-    {timeout} -> log()
+    {timeout} -> halt()
   after
     0 -> broadcast(Processes, MaxMessages, CurrentCount)
   end.
 
 updateMap() -> ok.
-broadcast(P, M, C) -> ok.
+broadcast(P, M, C) -> halt().
 log() -> ok.
