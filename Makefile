@@ -2,7 +2,7 @@
 
 .SUFFIXES: .erl .beam
 
-MODULES  = system1 process timer
+MODULES  = system1 process 
 
 # BUILD =======================================================
 
