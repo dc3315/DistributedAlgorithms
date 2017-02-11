@@ -26,7 +26,6 @@ awaitP2PLinks(N, PLs) ->
 % Send each perfect link the ids of other links + their corresponding process.
 interconnect(PLs) -> 
     [PL ! {interconnect, PLs} || {_, PL} <- PLs],
-    io:format("Ok interconnected!~n"),
     timer:sleep(1000),
     task1(PLs).
     
@@ -34,7 +33,6 @@ interconnect(PLs) ->
 task1(PLs) ->
    MaxMessages = 0,
    Time = 3000, 
-   io:format("Ok sent task1!~n"),
    [PL ! {message, 0, {task1, start, MaxMessages, Time}} || {_, PL} <- PLs].
 
 
