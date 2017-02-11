@@ -32,7 +32,8 @@ task1Helper(MaxMessages, From, To, CurrentCount, PL, SelfID) ->
                 timeout -> 
                     Vals = lists:flatten([io_lib:format("{~p,~p} ", 
                     [maps:get(Key, To), maps:get(Key, From)]) || Key <- lists:seq(1, 5)]),
-                    io:format(io_lib:format("~p: ", [SelfID]) ++ Vals ++ io_lib:format("~n", [])); 
+                    io:format(io_lib:format("~p: ", [SelfID]) ++ Vals ++ io_lib:format("~n", [])),
+                    PL ! {pl_send, 0, done};
                 up -> 
                     NewFrom = maps:update(FromToken, maps:get(FromToken, From) + 1, From),
                     task1Helper(MaxMessages, NewFrom, To, CurrentCount, PL, SelfID)

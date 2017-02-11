@@ -9,12 +9,13 @@ start() ->
     % Send each process the list of processes, the system pid, and its own id.
     [lists:nth(K, Processes) ! {bind, self(), K, N} || K <- lists:seq(1, N)],
     % Then, wait for each process to send their P2P link addresses.
-    awaitP2PLinks(N, []).
-
+    PLs = awaitP2PLinks(N, []),
+    interconnect(PLs),
+    countTermination(N).
 
 
 % Only interconnect the Perfect links once all of the have been received.
-awaitP2PLinks(0, PLs) -> interconnect(PLs);
+awaitP2PLinks(0, PLs) -> PLs;
 awaitP2PLinks(N, PLs) ->
     receive
         {p2pLinkID, PL, ProcID} -> 
@@ -39,8 +40,8 @@ task1(PLs) ->
 
 %
 %% Halt after all processes have logged their values.
-%countTermination(0) -> halt();
-%countTermination(N) -> 
-%    receive
-%        done -> countTermination(N - 1)
-%    end.  
+countTermination(0) -> halt();
+countTermination(N) -> 
+    receive
+        done -> countTermination(N - 1)
+    end.  
