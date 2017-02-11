@@ -11,6 +11,7 @@ start() ->
     % Then, wait for each process to send their P2P link addresses.
     PLs = awaitP2PLinks(N, []),
     interconnect(PLs),
+    task1(PLs),
     countTermination(N).
 
 
@@ -25,14 +26,12 @@ awaitP2PLinks(N, PLs) ->
 
 % Send each perfect link the ids of other links + their corresponding process.
 interconnect(PLs) -> 
-    [PL ! {interconnect, PLs} || {_, PL} <- PLs],
-    timer:sleep(1000),
-    task1(PLs).
+    [PL ! {interconnect, PLs} || {_, PL} <- PLs].
     
-
+    
 task1(PLs) ->
    MaxMessages = 0,
-   Time = 3000, 
+   Time = 1000, 
    [PL ! {message, 0, {task1, start, MaxMessages, Time}} || {_, PL} <- PLs].
 
 
