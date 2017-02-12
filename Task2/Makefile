@@ -2,7 +2,7 @@
 
 .SUFFIXES: .erl .beam
 
-MODULES  = system2 process p2p app
+MODULES  = system2 process pl app
 
 # BUILD =======================================================
 

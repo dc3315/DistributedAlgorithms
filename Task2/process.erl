@@ -10,9 +10,9 @@ start() ->
 
 
 next(SystemPID, SelfID, N) ->
-    PL = spawn(p2p, start, []),
+    PL = spawn(pl, start, []),
     App = spawn(app, start, []),
     
     App ! {appstart, PL, SelfID, N},
     PL ! {app, App, SystemPID},
-    SystemPID ! {p2pLinkID, PL, SelfID}.
+    SystemPID ! {plPID, PL, SelfID}.

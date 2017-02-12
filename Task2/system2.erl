@@ -6,37 +6,42 @@ start() ->
     % Create N processes.
     N = 5,
     Processes = [spawn(process, start, []) || _ <- lists:seq(1, N)],
-    % Send each process the list of processes, the system pid, and its own id.
-    [lists:nth(K, Processes) ! {bind, self(), K, N} || K <- lists:seq(1, N)],
-    % Then, wait for each process to send their P2P link addresses.
-    PLs = awaitP2PLinks(N, []),
-    interconnect(PLs),
-    task1(PLs),
+    % Send each process the system pid, its own token, and the number
+    % of other processes.
+    [lists:nth(Token, Processes) ! {bind, self(), Token, N} 
+    || Token <- lists:seq(1, N)],
+    % Then, wait for each process to send their PL addresses.
+    PlPIDs = awaitLinks(N, []),
+    % Once we have those, interConnect each PL.
+    interConnect(PlPIDs),
+    % Then invoke task1.
+    task1(PlPIDs),
     countTermination(N).
 
 
-% Only interconnect the Perfect links once all of the have been received.
-awaitP2PLinks(0, PLs) -> PLs;
-awaitP2PLinks(N, PLs) ->
+% Get all the PL PIDs to interconnect them all together afterwards.
+awaitLinks(0, PlPIDs) -> PlPIDs;
+awaitLinks(N, PlPIDs) ->
     receive
-        {p2pLinkID, PL, ProcID} -> 
-            awaitP2PLinks(N - 1, PLs ++ [{ProcID, PL}])
+        {plPID, PlPID, ProcToken} -> 
+            awaitLinks(N - 1, PlPIDs ++ [{ProcToken, PlPID}])
     end.
 
 
-% Send each perfect link the ids of other links + their corresponding process.
-interconnect(PLs) -> 
-    [PL ! {interconnect, PLs} || {_, PL} <- PLs].
+% Interconnect all PLs by sending the addresses of all PLs.
+interConnect(PlPIDs) -> 
+    [PlPID ! {interconnect, PlPIDs} || {_, PlPID} <- PlPIDs].
     
     
-task1(PLs) ->
+% Start the execution of task1.
+task1(PlPIDs) ->
    MaxMessages = 0,
    Time = 1000, 
-   [PL ! {message, 0, {task1, start, MaxMessages, Time}} || {_, PL} <- PLs].
+   [PlPID ! {message, 0, {task1, start, MaxMessages, Time}} 
+   || {_, PlPID} <- PlPIDs].
 
 
-%
-%% Halt after all processes have logged their values.
+% Halt all process once all processes have logged their values.
 countTermination(0) -> halt();
 countTermination(N) -> 
     receive
