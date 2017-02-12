@@ -4,7 +4,7 @@
 
 start() -> 
   receive
-    {bind, Processes} -> next(Processes)
+    {bindSystem, Processes} -> next(Processes)
   end.
 
 

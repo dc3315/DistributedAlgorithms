@@ -3,16 +3,16 @@
 
 
 start() ->
-    % Create N processes, and for each process, send the list of the PIDS
+    % Create N processes, and for each process, send the list of the PTokenS
     % of other processes. Then, ask for task1 to be executed.
     N = 5,
-    Processes = [spawn(process, start, []) || _ <- lists:seq(1, N)],
-    % Process list is in order.
-    _ = [X ! {bind, Processes} || X <- Processes],
+    ProcessPIDs = [spawn(process, start, []) || _ <- lists:seq(1, N)],
+    % Process PID list is in order.
+    _ = [X ! {bindSystem, ProcessPIDs} || X <- ProcessPIDs],
     MaxMessages = 0,
     TimeOut = 3000,
-    [lists:nth(ID, Processes) ! {task1, start, MaxMessages, TimeOut, self(), ID} 
-    || ID <- lists:seq(1, N)],
+    [lists:nth(Token, ProcessPIDs) ! {task1, start, MaxMessages, TimeOut, self(), Token} 
+    || Token <- lists:seq(1, N)],
     countTermination(N).
 
 
