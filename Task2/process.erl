@@ -4,15 +4,14 @@
 
 start() -> 
   receive
-    {bind, SystemPID, SelfID, N} -> 
-        next(SystemPID, SelfID, N)
+    {bindSystem, SystemPID, SelfToken, N} -> 
+        next(SystemPID, SelfToken, N)
   end.
 
 
-next(SystemPID, SelfID, N) ->
-    PL = spawn(pl, start, []),
-    App = spawn(app, start, []),
-    
-    App ! {appstart, PL, SelfID, N},
-    PL ! {app, App, SystemPID},
-    SystemPID ! {plPID, PL, SelfID}.
+next(SystemPID, SelfToken, N) ->
+    PlPID = spawn(pl, start, []),
+    AppPID = spawn(app, start, []),
+    AppPID ! {bindPL, PlPID, SelfToken, N},
+    PlPID ! {bindApp, AppPID, SystemPID},
+    SystemPID ! {plPID, PlPID, SelfToken}.

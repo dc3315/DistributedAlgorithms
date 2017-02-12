@@ -3,7 +3,7 @@
 
 start() ->
     receive
-        {appstart, PL, SelfID, N} -> 
+        {bindPL, PL, SelfID, N} -> 
             task1(PL, SelfID, N)
     end.
 
