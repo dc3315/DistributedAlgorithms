@@ -36,7 +36,7 @@ interConnect(PlPIDs) ->
 % Start the execution of task1.
 task1(PlPIDs) ->
    MaxMessages = 0,
-   Time = 2000, 
+   Time = 1000, 
    [PlPID ! {message, 0, {task1, start, MaxMessages, Time}} 
    || {_, PlPID} <- PlPIDs].
 

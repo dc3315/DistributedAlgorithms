@@ -34,9 +34,9 @@ task1Helper(MaxMessages, From, To, CurrentCount, BEBPID, SelfToken, N) ->
                     Vals = lists:flatten([io_lib:format("{~p,~p} ", 
                     [maps:get(Key, To), maps:get(Key, From)]) || Key <- lists:seq(1, N)]),
                     io:format(io_lib:format("~p: ", [SelfToken]) ++ Vals ++ io_lib:format("~n", [])),
-                    BEBPID ! {beb_broadcast, {message, SelfToken, done}};
+                    BEBPID ! terminate;
+                    %BEBPID ! {beb_broadcast, {message, SelfToken, done}};
                 up -> 
-%                    io:format("Upping!~n"),
                     NewFrom = maps:update(FromToken, maps:get(FromToken, From) + 1, From),
                     task1Helper(MaxMessages, NewFrom, To, CurrentCount, BEBPID, SelfToken, N)
             end
@@ -44,8 +44,8 @@ task1Helper(MaxMessages, From, To, CurrentCount, BEBPID, SelfToken, N) ->
         0 ->
             if
                 CurrentCount < MaxMessages ->
-                    NewTo = incrementMapValuesFromKeyList(To, lists:seq(1, N)),
                     BEBPID ! {beb_broadcast, {message, SelfToken, up}},
+                    NewTo = incrementMapValuesFromKeyList(To, lists:seq(1, N)),
  %                   io:format("Broadcasting!~n"),
                     task1Helper(MaxMessages, From, NewTo, CurrentCount + 1, BEBPID, SelfToken, N);
                 true ->
