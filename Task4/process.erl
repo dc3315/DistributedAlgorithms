@@ -15,7 +15,7 @@ next(SystemPID, SelfToken, N) ->
     BEBPID = spawn(beb, start, []),
     
     BEBPID ! {bindPLAndApp, AppPID, PlPID},
-    PlPID ! {bindBEB, BEBPID, SystemPID},
+    PlPID ! {bindBEB, BEBPID, SystemPID, 50},
 
     AppPID ! {bindBEB, BEBPID, SelfToken, N, SystemPID},
     SystemPID ! {plPID, PlPID, SelfToken}.

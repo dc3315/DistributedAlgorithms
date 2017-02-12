@@ -34,7 +34,7 @@ task1Helper(MaxMessages, From, To, CurrentCount, BEBPID, SelfToken, N, SystemPID
                     Vals = lists:flatten([io_lib:format("{~p,~p} ", 
                     [maps:get(Key, To), maps:get(Key, From)]) || Key <- lists:seq(1, N)]),
                     io:format(io_lib:format("~p: ", [SelfToken]) ++ Vals ++ io_lib:format("~n", [])),
-                    SystemPID ! terminate; % Exceptional message sent directly, to terminate program.
+                    SystemPID ! terminate;
                 up -> 
                     NewFrom = maps:update(FromToken, maps:get(FromToken, From) + 1, From),
                     task1Helper(MaxMessages, NewFrom, To, CurrentCount, BEBPID, SelfToken, N, SystemPID)
@@ -45,7 +45,6 @@ task1Helper(MaxMessages, From, To, CurrentCount, BEBPID, SelfToken, N, SystemPID
                 CurrentCount < MaxMessages ->
                     BEBPID ! {beb_broadcast, {message, SelfToken, up}},
                     NewTo = incrementMapValuesFromKeyList(To, lists:seq(1, N)),
- %                   io:format("Broadcasting!~n"),
                     task1Helper(MaxMessages, From, NewTo, CurrentCount + 1, BEBPID, SelfToken, N, SystemPID);
                 true ->
                     task1Helper(MaxMessages, From, To, CurrentCount, BEBPID, SelfToken, N, SystemPID)

@@ -1,4 +1,4 @@
--module(system3).
+-module(system4).
 -export([start/0]).
 
 
@@ -35,7 +35,7 @@ interConnect(PlPIDs) ->
     
 % Start the execution of task1.
 task1(PlPIDs) ->
-   MaxMessages = 0,
+   MaxMessages = 100,
    Time = 1000, 
    [PlPID ! {message, 0, {task1, start, MaxMessages, Time}} 
    || {_, PlPID} <- PlPIDs].
