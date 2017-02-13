@@ -1,8 +1,8 @@
-### dc3314, Makefile, inspired from lab01 Makefile. ###
+# dc3314, Makefile, inspired from lab01 Makefile. ###
 
 .SUFFIXES: .erl .beam
 
-MODULES  = system1 process 
+MODULES  = system5 process pl app beb rb
 
 # BUILD =======================================================
 
@@ -25,8 +25,8 @@ clean:
 
 # LOCAL RUN ===================================================
 
-SYSTEM    = system1
+SYSTEM    = system5
 L_ERL     = erl -noshell -pa ebin -setcookie pass
 
-run:	all
+run2:	all
 	$(L_ERL) -s $(SYSTEM) start

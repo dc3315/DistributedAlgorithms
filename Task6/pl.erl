@@ -19,7 +19,7 @@ next(BEBPID, SystemPID, Rel) ->
 ready(PlMap, BEBPID, Rel) ->
     receive
         {pl_send, ToToken, Message} -> 
-            N = rand:uniform(100),
+            N = random:uniform(100),
             if 
                 N =< Rel ->
                     maps:get(ToToken, PlMap) ! Message;
@@ -27,6 +27,7 @@ ready(PlMap, BEBPID, Rel) ->
                     ready(PlMap, BEBPID, Rel)
             end;
         _Message -> 
+%            io:format("Received ~p~n", [_Message]),
             BEBPID ! {pl_deliver, _Message}
     end,
     ready(PlMap, BEBPID, Rel).

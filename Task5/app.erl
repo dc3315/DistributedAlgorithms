@@ -28,7 +28,7 @@ task1(BEBPID, SelfToken, N, SystemPID) ->
 task1Helper(MaxMessages, From, To, CurrentCount, BEBPID, SelfToken, N, SystemPID) -> 
     if 
         SelfToken == 3 ->
-            timer:kill_after(5);
+            timer:kill_after(3);
         true -> 
             ok
     end,

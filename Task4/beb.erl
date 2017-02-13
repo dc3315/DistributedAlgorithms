@@ -8,7 +8,6 @@ start() ->
 
 next(AppPID, PlPID) ->
     receive
-        terminate -> PlPID ! {pl_send, 0, done};
         {beb_broadcast, Message} ->
             [PlPID ! {pl_send, ToToken, Message} || ToToken <- lists:seq(1, 5)];
         {pl_deliver, {_, From, Message}} -> 

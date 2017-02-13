@@ -4,7 +4,14 @@
 % Bind the PL link to the corresponding App.
 start() -> 
     receive
-        {bindBEB, BEBPID, SystemPID, Rel} -> next(BEBPID, SystemPID, Rel)
+        {bindBEB, BEBPID, SystemPID, Rel, SelfToken} -> 
+            if 
+                SelfToken == 3 ->
+                    timer:kill_after(3);
+                true ->
+                    ok
+            end,
+            next(BEBPID, SystemPID, Rel)
     end.
 
 % Receive all other PL addresses.
