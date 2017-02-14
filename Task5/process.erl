@@ -14,7 +14,7 @@ next(SystemPID, SelfToken, N) ->
     PlPID = spawn_link(pl, start, []),
     AppPID = spawn_link(app, start, []),
     BEBPID = spawn_link(beb, start, []),
-    BEBPID ! {bindPLAndApp, AppPID, PlPID},
+    BEBPID ! {bindPLAndApp, AppPID, PlPID, N},
     PlPID ! {bindBEB, BEBPID, SystemPID, 100},
     AppPID ! {bindBEB, BEBPID, SelfToken, N, SystemPID},
     SystemPID ! {plPID, PlPID, SelfToken},
@@ -24,7 +24,7 @@ next(SystemPID, SelfToken, N) ->
     end,
     if 
         SelfToken == 3 ->
-            timer:sleep(100),
+            timer:sleep(12),
             exit(kill);
         true ->
             ok

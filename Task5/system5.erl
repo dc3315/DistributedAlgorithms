@@ -36,7 +36,7 @@ interConnect(PlPIDs) ->
     
 % Start the execution of task1.
 task1(Processes) ->
-   MaxMessages = 1000,
+   MaxMessages = 100,
    Time = 1000, 
    [Process ! {task1, start, MaxMessages, Time} || Process <- Processes].
 

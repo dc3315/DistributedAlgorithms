@@ -18,7 +18,11 @@ next(BEBPID, SystemPID, Rel) ->
     end.
 
 
-% Get ready to transmit / deliver.
+%% Get ready to transmit / deliver.
+% Scan the queue for any 'pl_send' messages, if there is one,
+% send it, then check for any deliveries, then recurse. 
+% This ensures that we give the process a chance to deliver messages
+% if it is flooded with send messages (from beb broadcasts).
 ready(PlMap, BEBPID, Rel) ->
     receive
         {pl_send, ToToken, Message} -> 
