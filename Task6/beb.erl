@@ -4,25 +4,26 @@
 
 start() ->
     receive
-        {bindPLAndApp, RBPID, PlPID} -> next(RBPID, PlPID)
+        {bindPLAndApp, RBPID, PlPID, N} -> next(RBPID, PlPID, N)
     end.
 
-next(RBPID, PlPID) ->
+% Same as for pl, we force fairness by giving the process a chance to 
+% deliver messages, despite being flooded by broadcast signals.
+next(RBPID, PlPID, N) ->
     receive
         {beb_broadcast, Message} ->
-            [PlPID ! {pl_send, ToToken, Message} || ToToken <- lists:seq(1, 5)],
-            deliver(RBPID, PlPID)
-
+            [PlPID ! {pl_send, ToToken, Message} || ToToken <- lists:seq(1, N)],
+            deliver(RBPID, PlPID, N)
     after 0 ->
-      deliver(RBPID, PlPID)
-
+      deliver(RBPID, PlPID, N)
     end.
 
-deliver(RBPID, PlPID) ->
+
+deliver(RBPID, PlPID, N) ->
   receive
       {pl_deliver, Message} ->
           RBPID ! {beb_deliver, Message},
-          next(RBPID, PlPID)
+          next(RBPID, PlPID, N)
       after 0 ->
-        next(RBPID, PlPID)
+        next(RBPID, PlPID, N)
   end.

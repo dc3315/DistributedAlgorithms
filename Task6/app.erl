@@ -34,8 +34,7 @@ task1Helper(MaxMessages, From, To, CurrentCount, RBPID, SelfToken, N, SystemPID)
           [maps:get(Key, To), maps:get(Key, From)]) || Key <- lists:seq(1, N)]),
           io:format(io_lib:format("~p: ", [SelfToken]) ++ Vals ++ io_lib:format("~n", [])),
           SystemPID ! terminate;
-
-        {rb_deliver, {_, FromToken, Message}} ->
+        {rb_deliver, {_, FromToken, up}} ->
            NewFrom = maps:update(FromToken, maps:get(FromToken, From) + 1, From),
            task1Helper(MaxMessages, NewFrom, To, CurrentCount, RBPID, SelfToken, N, SystemPID)
     after

@@ -14,21 +14,17 @@ next(SystemPID, SelfToken, N) ->
     PlPID = spawn_link(pl, start, []),
     AppPID = spawn_link(app, start, []),
     BEBPID = spawn_link(beb, start, []),
-
     RBPID = spawn_link(rb, start, []),
-
     RBPID ! {bind, BEBPID, AppPID},
-
-    BEBPID ! {bindPLAndApp, RBPID, PlPID},
+    BEBPID ! {bindPLAndApp, RBPID, PlPID, N},
     PlPID ! {bindBEB, BEBPID, SystemPID, 100},
-
     AppPID ! {bindBEB, RBPID, SelfToken, N, SystemPID},
-
     SystemPID ! {plPID, PlPID, SelfToken},
     receive
         {task1, start, MaxMessages, Time} ->
             AppPID ! {task1, start, MaxMessages, Time}
     end,
+    % Kill process 3.
     if
       SelfToken == 3 ->
         timer:sleep(12),
