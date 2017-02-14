@@ -9,17 +9,19 @@ start() ->
 next(RBPID, PlPID) ->
     receive
         {beb_broadcast, Message} ->
-            [PlPID ! {pl_send, ToToken, Message} || ToToken <- lists:seq(1, 5)]
+            [PlPID ! {pl_send, ToToken, Message} || ToToken <- lists:seq(1, 5)],
+            deliver(RBPID, PlPID)
+
     after 0 ->
-      ok
-    end,
-    deliver(RBPID, PlPID).
+      deliver(RBPID, PlPID)
+
+    end.
 
 deliver(RBPID, PlPID) ->
   receive
       {pl_deliver, Message} ->
-          RBPID ! {beb_deliver, Message}
+          RBPID ! {beb_deliver, Message},
+          next(RBPID, PlPID)
       after 0 ->
-        ok
-  end,
-  next(RBPID, PlPID).
+        next(RBPID, PlPID)
+  end.

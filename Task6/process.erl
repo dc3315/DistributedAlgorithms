@@ -2,19 +2,19 @@
 -export([start/0]).
 
 
-start() -> 
+start() ->
   receive
-    {bindSystem, SystemPID, SelfToken, N} -> 
+    {bindSystem, SystemPID, SelfToken, N} ->
         next(SystemPID, SelfToken, N)
   end.
 
 
 next(SystemPID, SelfToken, N) ->
-    PlPID = spawn(pl, start, []),
-    AppPID = spawn(app, start, []),
-    BEBPID = spawn(beb, start, []),
+    PlPID = spawn_link(pl, start, []),
+    AppPID = spawn_link(app, start, []),
+    BEBPID = spawn_link(beb, start, []),
 
-    RBPID = spawn(rb, start, []),
+    RBPID = spawn_link(rb, start, []),
 
     RBPID ! {bind, BEBPID, AppPID},
 
@@ -25,6 +25,13 @@ next(SystemPID, SelfToken, N) ->
 
     SystemPID ! {plPID, PlPID, SelfToken},
     receive
-        {task1, start, MaxMessages, Time} -> 
+        {task1, start, MaxMessages, Time} ->
             AppPID ! {task1, start, MaxMessages, Time}
+    end,
+    if
+      SelfToken == 3 ->
+        timer:sleep(12),
+        exit(kill);
+      true ->
+        ok
     end.

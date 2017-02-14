@@ -25,18 +25,20 @@ ready(PlMap, BEBPID, Rel) ->
                     maps:get(ToToken, PlMap) ! {inter_pl, Message};
                 true ->
                     ok
-            end
+            end,
+            deliver(PlMap, BEBPID, Rel)
     after 0 ->
-          ok
-    end,
-    deliver(PlMap, BEBPID, Rel).
+          deliver(PlMap, BEBPID, Rel)
+    end.
+
 
 deliver(PlMap, BEBPID, Rel) ->
     receive
         {inter_pl, _Message} ->
 %            io:format("Received ~p~n", [_Message]),
-            BEBPID ! {pl_deliver, _Message}
+            BEBPID ! {pl_deliver, _Message},
+            ready(PlMap, BEBPID, Rel)
     after 0 ->
-      ok
-    end,
-    ready(PlMap, BEBPID, Rel).
+      ready(PlMap, BEBPID, Rel)
+    end.
+    

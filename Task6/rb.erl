@@ -27,7 +27,6 @@ deliver(BEBPID, AppPID, Messages, Count) ->
 
                 next(BEBPID, AppPID, Messages, Count);
             false ->
-  %                    io:format("Received RB deliver ~p~n", [Message]),
                 {Body, _} = Message,
                 AppPID ! {rb_deliver, Body},
                 BEBPID ! {beb_broadcast, Message},
