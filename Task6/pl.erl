@@ -2,15 +2,15 @@
 -export([start/0]).
 
 % Bind the PL link to the corresponding App.
-start() -> 
+start() ->
     receive
         {bindBEB, BEBPID, SystemPID, Rel} -> next(BEBPID, SystemPID, Rel)
     end.
 
 % Receive all other PL addresses.
-next(BEBPID, SystemPID, Rel) -> 
+next(BEBPID, SystemPID, Rel) ->
     receive
-        {interConnectPLs, PlMappings} -> 
+        {interConnectPLs, PlMappings} ->
             PlMap = maps:from_list(PlMappings ++ [{0, SystemPID}]),
             ready(PlMap, BEBPID, Rel)
     end.
@@ -18,17 +18,25 @@ next(BEBPID, SystemPID, Rel) ->
 % Get ready to transmit / deliver.
 ready(PlMap, BEBPID, Rel) ->
     receive
-        {pl_send, ToToken, Message} -> 
+        {pl_send, ToToken, Message} ->
             N = random:uniform(100),
-            if 
+            if
                 N =< Rel ->
-                    maps:get(ToToken, PlMap) ! Message;
-                true -> 
-                    ready(PlMap, BEBPID, Rel)
-            end;
-        _Message -> 
+                    maps:get(ToToken, PlMap) ! {inter_pl, Message};
+                true ->
+                    ok
+            end
+    after 0 ->
+          ok
+    end,
+    deliver(PlMap, BEBPID, Rel).
+
+deliver(PlMap, BEBPID, Rel) ->
+    receive
+        {inter_pl, _Message} ->
 %            io:format("Received ~p~n", [_Message]),
             BEBPID ! {pl_deliver, _Message}
+    after 0 ->
+      ok
     end,
     ready(PlMap, BEBPID, Rel).
-

@@ -8,7 +8,7 @@ start() ->
     Processes = [spawn(process, start, []) || _ <- lists:seq(1, N)],
     % Send each process the system pid, its own token, and the number
     % of other processes.
-    [lists:nth(Token, Processes) ! {bindSystem, self(), Token, N} 
+    [lists:nth(Token, Processes) ! {bindSystem, self(), Token, N}
     || Token <- lists:seq(1, N)],
     % Then, wait for each process to send their PL addresses.
     PlPIDs = awaitLinks(N, []),
@@ -23,26 +23,26 @@ start() ->
 awaitLinks(0, PlPIDs) -> PlPIDs;
 awaitLinks(N, PlPIDs) ->
     receive
-        {plPID, PlPID, ProcToken} -> 
+        {plPID, PlPID, ProcToken} ->
             awaitLinks(N - 1, PlPIDs ++ [{ProcToken, PlPID}])
     end.
 
 
 % Interconnect all PLs by sending the addresses of all PLs.
-interConnect(PlPIDs) -> 
+interConnect(PlPIDs) ->
     [PlPID ! {interConnectPLs, PlPIDs} || {_, PlPID} <- PlPIDs].
-    
-    
+
+
 % Start the execution of task1.
 task1(Processes) ->
    MaxMessages = 0,
-   Time = 1000, 
+   Time = 100, 
    [Process ! {task1, start, MaxMessages, Time} || Process <- Processes].
 
 
 % Halt all process once all processes have logged their values.
 countTermination(0) -> halt();
-countTermination(N) -> 
+countTermination(N) ->
     receive
         terminate -> countTermination(N - 1)
-    end.  
+    end.
