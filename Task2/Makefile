@@ -28,5 +28,5 @@ clean:
 SYSTEM    = system2
 L_ERL     = erl -noshell -pa ebin -setcookie pass
 
-run2:	all
+run:	all
 	$(L_ERL) -s $(SYSTEM) start

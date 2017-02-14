@@ -2,7 +2,7 @@
 
 .SUFFIXES: .erl .beam
 
-MODULES  = system5 process pl app beb rb
+MODULES  = system6 process pl app beb rb
 
 # BUILD =======================================================
 
@@ -25,8 +25,8 @@ clean:
 
 # LOCAL RUN ===================================================
 
-SYSTEM    = system5
+SYSTEM    = system6
 L_ERL     = erl -noshell -pa ebin -setcookie pass
 
-run2:	all
+run:	all
 	$(L_ERL) -s $(SYSTEM) start

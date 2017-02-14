@@ -1,3 +1,4 @@
+% David Cattle (dc3314), Jan Matas (jm6214)
 -module(app).
 -export([start/0]).
 

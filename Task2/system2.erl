@@ -1,3 +1,4 @@
+% David Cattle (dc3314), Jan Matas (jm6214)
 -module(system2).
 -export([start/0]).
 
