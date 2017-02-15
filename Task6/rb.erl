@@ -5,7 +5,7 @@
 
 start() ->
     receive
-        {bind, BEBPID, AppPID} -> next(BEBPID, AppPID, [], 0)
+        {bind, BEBPID, AppPID} -> next(BEBPID, AppPID, [], 1)
     end.
 
 next(BEBPID, AppPID, Messages, Count) ->

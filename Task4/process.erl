@@ -3,9 +3,9 @@
 -export([start/0]).
 
 
-start() -> 
+start() ->
   receive
-    {bindSystem, SystemPID, SelfToken, N} -> 
+    {bindSystem, SystemPID, SelfToken, N} ->
         next(SystemPID, SelfToken, N)
   end.
 
@@ -17,9 +17,4 @@ next(SystemPID, SelfToken, N) ->
     BEBPID ! {bindPLAndApp, AppPID, PlPID, N},
     PlPID ! {bindBEB, BEBPID, SystemPID, 100},
     AppPID ! {bindBEB, BEBPID, SelfToken, N, SystemPID},
-    SystemPID ! {plPID, PlPID, SelfToken},
-    receive
-        {task1, start, MaxMessages, Time} -> 
-            AppPID ! {task1, start, MaxMessages, Time}
-    end.
-
+    SystemPID ! {plPID, PlPID, SelfToken}.

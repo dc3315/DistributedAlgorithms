@@ -3,16 +3,16 @@
 -export([start/0]).
 
 % Bind the PL link to the corresponding App.
-start() -> 
+start() ->
     receive
-        {bindBEB, BEBPID, SystemPID, Rel} ->    
+        {bindBEB, BEBPID, SystemPID, Rel} ->
             next(BEBPID, SystemPID, Rel)
     end.
 
 % Receive all other PL addresses.
-next(BEBPID, SystemPID, Rel) -> 
+next(BEBPID, SystemPID, Rel) ->
     receive
-        {interConnectPLs, PlMappings} -> 
+        {interConnectPLs, PlMappings} ->
             PlMap = maps:from_list(PlMappings ++ [{0, SystemPID}]),
             ready(PlMap, BEBPID, Rel)
     end.
@@ -20,17 +20,17 @@ next(BEBPID, SystemPID, Rel) ->
 
 %% Get ready to transmit / deliver.
 % Scan the queue for any 'pl_send' messages, if there is one,
-% send it, then check for any deliveries, then recurse. 
+% send it, then check for any deliveries, then recurse.
 % This ensures that we give the process a chance to deliver messages
 % if it is flooded with send messages (from beb broadcasts).
 ready(PlMap, BEBPID, Rel) ->
     receive
-        {pl_send, ToToken, Message} -> 
-            N = random:uniform(100),
-            if 
+        {pl_send, ToToken, Message} ->
+            N = rand:uniform(100),
+            if
                 N =< Rel ->
                     maps:get(ToToken, PlMap) ! {inter_pl, Message};
-                true -> 
+                true ->
                     ok
             end,
             deliver(PlMap, BEBPID, Rel)
@@ -46,4 +46,3 @@ deliver(PlMap, BEBPID, Rel) ->
     after 0 ->
         ready(PlMap, BEBPID, Rel)
     end.
-

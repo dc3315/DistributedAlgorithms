@@ -20,10 +20,6 @@ next(SystemPID, SelfToken, N) ->
     PlPID ! {bindBEB, BEBPID, SystemPID, 100},
     AppPID ! {bindBEB, RBPID, SelfToken, N, SystemPID},
     SystemPID ! {plPID, PlPID, SelfToken},
-    receive
-        {task1, start, MaxMessages, Time} ->
-            AppPID ! {task1, start, MaxMessages, Time}
-    end,
     % Kill process 3.
     if
       SelfToken == 3 ->

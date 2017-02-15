@@ -10,16 +10,16 @@ start() ->
     ProcessPIDs = [spawn(process, start, []) || _ <- lists:seq(1, N)],
     % Process PID list is in order.
     _ = [X ! {bindSystem, ProcessPIDs} || X <- ProcessPIDs],
-    MaxMessages = 0,
+    MaxMessages = 1000,
     TimeOut = 3000,
-    [lists:nth(Token, ProcessPIDs) ! {task1, start, MaxMessages, TimeOut, self(), Token} 
+    [lists:nth(Token, ProcessPIDs) ! {task1, start, MaxMessages, TimeOut, self(), Token}
     || Token <- lists:seq(1, N)],
     countTermination(N).
 
 
 % Halt after all processes have logged their values.
 countTermination(0) -> halt();
-countTermination(N) -> 
+countTermination(N) ->
     receive
         done -> countTermination(N - 1)
-    end.  
+    end.
