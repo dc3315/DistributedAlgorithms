@@ -12,7 +12,7 @@ start() ->
 task1(PlPID, SelfToken, N, SystemPID) -> 
     receive
         % Upon reception of the trigger, start the game.
-        {task1, start, MaxMessages, Time} -> 
+        {pl_deliver, {task1, start, MaxMessages, Time}} -> 
             timer:send_after(Time, timeout),
             From = maps:from_list([{Token, 0} || Token <- lists:seq(1, N)]), 
             To = maps:from_list([{Token, 0} || Token <- lists:seq(1, N)]),

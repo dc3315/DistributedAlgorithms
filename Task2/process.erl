@@ -15,9 +15,4 @@ next(SystemPID, SelfToken, N) ->
     AppPID = spawn(app, start, []),
     AppPID ! {bindPL, PlPID, SelfToken, N, SystemPID},
     PlPID ! {bindApp, AppPID, SystemPID},
-    SystemPID ! {plPID, PlPID, SelfToken},
-    receive
-        {task1, start, MaxMessages, Time} ->
-            AppPID ! {task1, start, MaxMessages, Time}
-    end.
-
+    SystemPID ! {plPID, PlPID, SelfToken}.
