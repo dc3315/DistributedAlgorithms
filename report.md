@@ -2,9 +2,9 @@
 # Coursework 1
 ---
 ## How to run
-We have split our submission into 6 directories, each of them corresponding to 1 task. Each directory has a `Makefile` so to test our code, you can simply change to the directory corresponding to the desired task and run `make run`  
+We have split our submission into 6 directories, each of them corresponding to one task. Each directory has a `Makefile` to test our code, you can simply change to the directory corresponding to the desired task and run `make run`  
 
-## Task 1 - Erlang	Broadcast
+## Task 1 - Erlang Broadcast
 
 ```
 {task1, start, 1000, 3000}
@@ -25,7 +25,7 @@ We were delighted to see that our output matches the expected output in the spec
 2: {161338,161367} {161338,161338} {161338,150592} {161338,150592} {161338,150598}
 ```
 
-When we have infinite number of messages, vast majority of messages sent are also received. In our tests, there was a difference of at most one message between the number of sent messages and a number of received messages from the corresponding process. These messages are not lost, they are simply in the message queue of the receiving process after the `timeout` message, so they are ignored.
+When we have infinite number of messages, the vast majority of messages sent are also received. In our tests, there was a difference of at most one message between the number of sent messages and a number of received messages from the corresponding process. These messages are not lost, they are simply in the message queue of the receiving process after the `timeout` message, so they are ignored.
 
 
 ## Task 2 - PL Broadcast
@@ -46,13 +46,13 @@ Similarly to task 1, we found nothing to surprising. When the number of messages
 4: {13020,13010} {13020,13000} {13020,13002} {13020,13004} {13020,13007}
 5: {13024,13010} {13024,13000} {13024,13003} {13024,13006} {13024,13007}
 ```
-More interesting case is when the number of messages is unlimited. The number of receives no longer matches the corresponding number of sends. This is caused by adding another layer of abstraction.
+The more interesting case is when the number of messages is unlimited. The number of received messages no longer matches the corresponding number of sends. This is caused by the addition of another layer of abstraction.
 
-The app has no idea what is happening bellow it, so it just keeps sending `pl_send` messages to Pl component and it gets immediately flooded. The `inter_pl` messages from other Pls are far in the queue and they get processed later. When the timeout message arrives to app, there is still a lot of `inter_pl` messages in message queues or Pls, but those get discarded.
+The app is agnostic of the layers below it, so it just keeps sending `pl_send` messages to PL component which gets immediately flooded. The `inter_pl` messages from other PLs are far in the queue and they get processed later. When the app receives the timeout message, there is still a lot of `inter_pl` messages in message queues of Pls, but they get discarded.
 
-This issue was becoming more and more pronounced in later tasks, when we were adding more layers of indirection. We were thus forced to find a way to ensure fairness when flooded by `pl_send`. We have outlined our solution in next part, where we think it is more relevant.
+This issue was becoming more and more pronounced in later tasks, as we were adding more and more layers of indirection. We were thus forced to find a way to ensure fairness when flooded by `pl_send` messages. We have outlined our solution in next part, where we think it is more relevant.
 
-## Task 3 - Best	Effort	Broadcast
+## Task 3 - Best Effort	Broadcast
 ```
 Max_messages = 100, Timeout = 1000
 1: {100,100} {100,100} {100,100} {100,100} {100,100}
@@ -61,7 +61,7 @@ Max_messages = 100, Timeout = 1000
 5: {100,100} {100,100} {100,100} {100,100} {100,100}
 2: {100,100} {100,100} {100,100} {100,100} {100,100}
 ```
-As expected, there is equal number of send and received messages for each process and this number `Max_messages`.
+As expected, there is equal number of send and received messages for each process and this number is `Max_messages`.
 
 ```
 Max_messages = 0, Timeout = 1000
@@ -72,14 +72,14 @@ Max_messages = 0, Timeout = 1000
 4: {4565,193} {4565,192} {4565,192} {4565,191} {4565,191}
 ```
 
-This is a more interesting case. At first, we were having problems with a very small number of messages received (in some cases it was 0) even tough the number of sent messages was going over the roof. We realized that this is likely caused by the fact that we are processing all sends and receives in FIFO order. By the time first message is received, each PL was flooded by send commands, so it would not get around to read it for a while. Moreover, there would be nothing stopping app module and beb module from flooding it by more broadcasts. We realized that the "send" messages are starving the receives.
+This is a more interesting case. At first, we were having problems with a very small number of messages received (in some cases 0) even though the number of sent messages was going over the roof. We realised this: it is likely caused by the fact that we are processing all sends and receives in FIFO order. By the time first message is received, each PL was flooded by send commands, so it would not get round to reading it for a while. Moreover, there would be nothing stopping the app module and the beb module from flooding it with more broadcasts. We realised that the `send` messages are starving the receives.
 
 Our original code in Pl looked a bit like this:
 ```
 pl() ->
   receive
-    {pl_send, _} -> send to another pl
-    {pl_receive, _} -> send up to beb
+    {pl_send, _} -> send to another pl and recurse
+    {pl_receive, _} -> send up to beb and recurse
   end.
 ```
 Although it makes sense, it does not ensure that messages can be received in presence of a lot of sends. We have accomplished this behavior by refactoring the component to look a bit like this:
@@ -99,9 +99,9 @@ deliver() ->
   after 0 -> pl()
   end.
 ```
-This ensured that if there is a message that needs to be delivered, it will happen even tough the pl is flooded by sends. Unfortunately, this has a performance penalty, as we need to scan the whole message queue in the worst case. We copied this pl implementation to Task 2 and used the same pattern in Beb and RB components as well.
+This ensured that if there is a message that needs to be delivered, it will happen even though the pl is flooded by sends. Unfortunately, this has a performance penalty, as we need to scan the whole message queue in the worst case. We copied this pl implementation to Task 2 and used the same pattern in Beb and RB components as well, throughout the rest of this coursework.
 
-## Task 4 - Unreliable	Message	Sending
+## Task 4 - Unreliable Message Sending
 ### Limited messages
 ```
 Max_messages = 100, Timeout = 1000, Rel = 100
@@ -126,7 +126,7 @@ Max_messages = 100, Timeout = 1000, Rel = 0
 5: {100,0} {100,0} {100,0} {100,0} {100,0}
 3: {100,0} {100,0} {100,0} {100,0} {100,0}
 ```
-When `Rel = 100`, the lossy links component has exactly the same behavior as the perfect links component, so the result is the same as we have seen before (all messages are delivered). In the opposite situation, when `Rel = 0`, the lossy links component just drops all the messages, so nothing gets delivered as expected. Finally, when `Rel = 50`, the number of received messages seems to be 50 on average and we believe it follows binomial distribution with 100 trials and probability p = `Rel`/100 = 0.5.
+When `Rel = 100`, the lossy links component has exactly the same behavior as the perfect links component, so the result is the same as we have seen before (all messages are delivered). In the opposite situation, when `Rel = 0`, the lossy links component just drops all the messages, so nothing gets delivered, as expected. Finally, when `Rel = 50`, the number of received messages seems to be 50 on average and we believe it follows binomial distribution with 100 trials and probability p = `Rel`/100 = 0.5.
 
 ### Unlimited messages
 ```
@@ -152,9 +152,9 @@ Max_messages = 0, Timeout = 1000, Rel = 0
 5: {6085,0} {6085,0} {6085,0} {6085,0} {6085,0}
 ```
 
-When `Rel = 0`, no messages are received as we would expect. More interesting fact arises from the comparison of `Rel = 100` and `Rel = 50`.  We expected that the average number of receives is going to be smaller by 50% in case of `Rel = 50` but even after multiple experiments (to smoothen out the effect of cores being used by other processes) we did not really get this behavior.
+When `Rel = 0`, no messages are received as we would expect. A more interesting fact arises from the comparison of `Rel = 100` and `Rel = 50`.  We expected that the average number of receives to be smaller by 50% in the `Rel = 50` case, but even after multiple experiments (to smoothen out the effect of cores being used by other processes) we did not really get this behavior.
 
-We believe that the lower level components (`PL`,`BEB`) are "flooded" with broadcast and send commands by the time first message is received. Because of our decision to give equal opportunity to sends and receives, the system actually does not care what is the ratio of sends and receives in the message queue as long as there is enough commands to keep it busy. Therefore, even tough there are less (50%) received messages from other peers in the messsage queues of lower level components, almost the same number of them gets the opportunity to be delivered all the way to app component.
+We believe that the lower level components (`PL`,`BEB`) are "flooded" with broadcast and send commands by the time first message is received. Because of our decision to give equal opportunity to sends and receives, the system actually does not care what the ratio of sends and receives is in the message queue as long as there is enough commands to keep it busy. Therefore, even though there are less (50%) received messages from other peers in the messsage queues of lower level components, almost the same number of them get the opportunity to be delivered all the way to app component. In other words, the queue will always be full of messages to process due to the high number of broadcasts, and the same number of 'deliver' messages will be received.
 
 
 
@@ -168,9 +168,9 @@ After running with `Max_messages = 100`, `Timeout = 1000` and `process 3` termin
 1: {100,100} {100,100} {100,13} {100,100} {100,100}
 ```
 
-We can see that termination of `process 3` happened during its broadcast, and it managed to send message 13 to `process 1` and `process 2` but got cut off before it managed to send message 13 to  `process 4` and `process 5`. This is expected behavior of best effort broadcast, as it has no guarantees that all correct eventually processes receive the same set of messages. We have chosen longer timeout than suggested because otherwise the process always terminated before sending any message whatsover (but we found this to be machine specific).
+We can see that termination of `process 3` happened while it was broadcasting, and it managed to send message 13 to `process 1` and `process 2` but got killed before it managed to send message 13 to  `process 4` and `process 5`. This is expected behavior by best effort broadcast standards, as it has no guarantees that all correct processes eventually receive the same set of messages. We have chosen longer timeouts than suggested because otherwise the process will always be terminated before sending any message. (but we found this to be machine specific).
 
-After running with `Max_messages = 0`, `Timeout = 1000` and `process 3` termination after 30 ms  we got the following result :
+After running with `Max_messages = 0`, `Timeout = 1000` and making `process 3` terminate after 12 ms  we obtained the following result:
 
 ```
 2: {5219,251} {5219,250} {5219,47} {5219,254} {5219,250}
@@ -183,13 +183,13 @@ Similarly, `process 3` was terminated after sending message 47 to `process 1` bu
 
 
 
-## Task 6 – Eager	Reliable	Broadcast
-We have decided to test the system with multiple sets of parameters to see how the system behaves under different conditions. We found the results of 3 cases particularly interesting:
-* Limited messages and long timeout
-* Limited messages and very short timeout
+## Task 6 – Eager Reliable Broadcast
+We have decided to test the system with multiple sets of parameters to see how the system behaves under different conditions. We found the results of the following 3 cases to be particularly interesting:
+* Limited messages, long timeout
+* Limited messages, very short timeout
 * Infinite messages
 
-We did not find playing with `process 3` timeout particularly enlightening. With small values (3ms or less) it just finished without sending any message, otherwise the number of received messages increased approximately linearly with the timeout.
+We did not find playing with `process 3`'s timeout particularly intriguing. With small values (3ms or less) it was killed without sending any message, otherwise the number of received messages increased approximately linearly with the timeout.
 
 ### Limited messages and long timeout
 After running with `Max_messages = 100` and `Timeout = 3000` we got the following result:
@@ -199,7 +199,7 @@ After running with `Max_messages = 100` and `Timeout = 3000` we got the followin
 5: {100,100} {100,100} {100,2} {100,100} {100,100}
 2: {100,100} {100,100} {100,2} {100,100} {100,100}
 ```
-We can see that all processes finish sending `Max_messages` apart from `process 3`, who is killed earlier. On multiple runs, we see the number of messages received from `process 3` vary significantly, but it is always the same across all the correct processes, as we would expect from reliable broadcast.
+We can see that all processes finished sending `Max_messages` apart from `process 3`, which is killed earlier. On multiple runs, we see the number of messages received from `process 3` vary significantly, but it is always the same across all the correct processes, as we would expect from reliable broadcast.
 
 Increasing the lossiness of the link, we see that the number of successful receives decreases slowly. On 80%, it seems that we still have more than 99% confidence that broadcasted messages will be seen by all hosts. On 50% reliability, hosts report on average 87 receives and on 10% reliability they report on average 15% receives (it should be noted that we stopped `process 3` from failing when testing the link reliability, to simplify our next computation.)
 
@@ -234,7 +234,7 @@ After running with `Max_messages = 100` and `Timeout = 300` we got the following
 5: {100,38} {100,38} {100,1} {100,38} {100,38}
 1: {100,38} {100,38} {100,2} {100,38} {100,38}
 ```
-In this case, we can see that there is no agreement in the number of received messages from `process 3`. This is caused by the fact that we send the timeout signal so soon that `process 5` simply did not have enough time to process all rebroadcasts from other processes and therefore have not seen the second message yet (it is probably in deliver queue of its `PL`, `BEB` or `RB` component and have not reached `App` component responsible for counting). The agreement would be reached later on, if we did not timeout the system. This theory is also supported by observation that none of the processes had enough time to finish processing all the messages from correct peers.
+In this case, we can see that there is no agreement in the number of received messages from `process 3`. This is caused by the fact that we send the timeout signal so soon that `process 5` simply did not have enough time to process all rebroadcasts from other processes and therefore did not see the second message yet (it is probably in deliver queue of its `PL`, `BEB` or `RB` component and has not reached the `App` component responsible for counting). The agreement would have been reached later on, if we did not timeout the system so early. This theory is also supported by the observation that none of the processes had enough time to finish processing all the messages from correct peers.
 
 ### Unlimited messages and long timeout
 After running with `Max_messages = 0` and `Timeout = 3000` we got the following result:
@@ -244,6 +244,6 @@ After running with `Max_messages = 0` and `Timeout = 3000` we got the following 
 2: {8012,288} {8012,288} {8012,23} {8012,290} {8012,289}
 5: {8015,288} {8015,288} {8015,22} {8015,290} {8015,289}
 ```
-In this final case, there is again no consensus reached about the number of the messages received from `process 3`. We attribute this to the fact that the low level components (`RB`,`BEB`,`PL`) are flooded with infinity messages from other peers, so even if the timeout is long, they did not have time to process all the rebroadcasts of messages from `process 3`. We can see even tough Eager Reliable Broadcast guarantees that all correct processes will _eventually_ get all the messages, it is not always the case that it happens soon enough before we shut down the system.
+In this final case, there is again no consensus reached about the number of the messages received from `process 3`. We attribute this to the fact that the low level components (`RB`,`BEB`,`PL`) are flooded with infinity messages from other peers, so even if the timeout is long, they did not have time to process all the rebroadcasts of messages from `process 3`. We can see even tough Eager Reliable Broadcast guarantees that all correct processes will _eventually_ get all the messages, it is not always the case that it happens soon enough before we kill the system.
 
 When we set the timeout much higher (10s +), we always see that the system reaches consensus on number of messages received from `process 3`.
