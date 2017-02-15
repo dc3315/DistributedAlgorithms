@@ -16,7 +16,7 @@ start() ->
     % Once we have those, interConnect each PL.
     interConnect(PlPIDs),
     % Then invoke task1.
-    task1(PlPIDs),
+    task1(Processes),
     countTermination(N).
 
 
@@ -35,16 +35,16 @@ interConnect(PlPIDs) ->
     
     
 % Start the execution of task1.
-task1(PlPIDs) ->
-   MaxMessages = 0,
+task1(Processes) ->
+   MaxMessages = 500,
    Time = 1000, 
-   [PlPID ! {message, 0, {task1, start, MaxMessages, Time}} 
-   || {_, PlPID} <- PlPIDs].
+   [Process ! {task1, start, MaxMessages, Time} ||
+    Process <- Processes].
 
 
 % Halt all process once all processes have logged their values.
 countTermination(0) -> halt();
 countTermination(N) -> 
     receive
-        done -> countTermination(N - 1)
+        terminate -> countTermination(N - 1)
     end.  
